@@ -160,6 +160,13 @@ func (conn *connection) readLoop(ctx context.Context, send sendFunc) {
 		switch msg.Type {
 		case typeConnectionInit:
 			var initMsg initMessagePayload
+			
+			// com.apollographql.apollo:apollo-runtime:1.4.3 sends an empty string for
+			// connection_init
+			if len(msg.Payload) == 0 {
+				msg.Payload = []byte("{}")
+			}
+			
 			if err := json.Unmarshal(msg.Payload, &initMsg); err != nil {
 				ep := errPayload(fmt.Errorf("invalid payload for type: %s", msg.Type))
 				send("", typeConnectionError, ep)
